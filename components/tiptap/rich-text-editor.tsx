@@ -20,6 +20,8 @@ import { FloatingToolbar } from "@/components/tiptap/extensions/floating-toolbar
 import { EditorToolbar } from "./toolbars/editor-toolbar";
 import Placeholder from "@tiptap/extension-placeholder";
 import { content } from "@/lib/content";
+import { useWebSocket } from "@/context/WebContext";
+import { useState, useEffect } from "react";
 
 const extensions = [
   StarterKit.configure({
@@ -73,10 +75,14 @@ const extensions = [
 ];
 
 export function RichTextEditorDemo({ className }: { className?: string }) {
+  const { sendMessage, editorContent } = useWebSocket();
+  console.log("form Rich Text Editor", editorContent);
+  // const [editorContentt, setEditorContent] = useState('');
+
   const editor = useEditor({
     immediatelyRender: false,
     extensions: extensions as Extension[],
-    content,
+    content: editorContent,
     editorProps: {
       attributes: {
         class: "max-w-full focus:outline-none",
@@ -87,9 +93,23 @@ export function RichTextEditorDemo({ className }: { className?: string }) {
       // Update stats
       // saving as text/json/hmtml
       // const text = editor.getHTML();
-      console.log(editor.getText());
+      sendMessage(editor.getHTML());
+      // setEditorContent(editor.getHTML());
+      // setEditorContent(editorContent);
+      // console.log(editor.getHTML());
+      // console.log(editor.getText());
     },
   });
+
+  useEffect(() => {
+    if (editor && editorContent) {
+      // Skip update if the editor already has this content to prevent cursor jumps
+      // Only update if the content is different from current editor content
+      if (editor.getHTML() !== editorContent) {
+        editor.commands.setContent(editorContent, false);
+      }
+    }
+  }, [editor, editorContent]);
 
   if (!editor) return null;
 

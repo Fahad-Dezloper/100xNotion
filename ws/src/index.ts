@@ -33,6 +33,15 @@ wss.on('connection', function connection(ws: import('ws').WebSocket) {
                 rooms[data.room].push(userId);
             }
         }
+        console.log(wss.clients.size, 'clients connected');
+        wss.clients.forEach(client => {
+            if (client.readyState === WebSocket.OPEN) {
+                client.send(JSON.stringify({
+                    type: 'total_users',
+                    total: wss.clients.size,
+                }));
+            }
+        });
 
     } else if (data.type === 'message') {
         // Broadcast message to all clients
@@ -46,32 +55,7 @@ wss.on('connection', function connection(ws: import('ws').WebSocket) {
             }
         });
 
-    } else if (data.type === 'admin') {
-        // Admin functionality - broadcast to all or a specific room
-        if (data.action === 'broadcast') {
-            wss.clients.forEach(client => {
-                if (client.readyState === WebSocket.OPEN) {
-                    client.send(JSON.stringify({
-                        type: 'admin_message',
-                        content: data.content,
-                    }));
-                }
-            });
-        } else if (data.action === 'room_broadcast') {
-            // Broadcast to a specific room
-            if (rooms[data.room]) {
-                rooms[data.room].forEach(roomId => {
-                    if (users[roomId] && users[roomId].readyState === WebSocket.OPEN) {
-                        users[roomId].send(JSON.stringify({
-                            type: 'admin_message',
-                            content: data.content,
-                        }));
-                    }
-                });
-            }
-        }
     }
-
     } catch (error) {
       console.error('Error Processing Message', error);
     }
