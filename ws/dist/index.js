@@ -44,11 +44,29 @@ function initServer() {
 }
 // Handle broadcasting messages to clients
 function broadcastToClients(data, fromRedis = false) {
-    wss.clients.forEach(client => {
-        if (client.readyState === WebSocket.OPEN) {
-            client.send(JSON.stringify(data));
-        }
-    });
+    // If message has a room field, only send to users in that room
+    console.log("broadcastToClients", data);
+    const roomKey = data.room;
+    const roomUsers = rooms[roomKey] || [];
+    if (roomUsers.length > 0) {
+        // Send only to users in the specified room
+        wss.clients.forEach(client => {
+            const clientUserId = Object.keys(users).find(id => users[id] === client);
+            if (client.readyState === WebSocket.OPEN &&
+                clientUserId &&
+                roomUsers.includes(clientUserId)) {
+                client.send(JSON.stringify(data));
+            }
+        });
+    }
+    else {
+        // If no room specified or room doesn't exist, fallback to broadcast to all
+        wss.clients.forEach(client => {
+            if (client.readyState === WebSocket.OPEN) {
+                client.send(JSON.stringify(data));
+            }
+        });
+    }
     // If this is a local message, publish to Redis for other server instances
     if (!fromRedis && data.type === 'message') {
         pub.publish('ws:broadcast', JSON.stringify(data));
@@ -88,21 +106,24 @@ wss.on('connection', function connection(ws) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const data = JSON.parse(rawMessage.toString());
-                console.log('received:', data);
+                // console.log('received:', data);
                 switch (data.type) {
                     case 'join': {
                         userId = data.userId || (0, uuid_1.v4)();
                         if (userId) {
                             users[userId] = ws;
                         }
-                        console.log(`User ${userId} joined`);
+                        // console.log(`User ${userId} joined ${data.roomId}`);
                         // Send confirmation to the user
                         ws.send(JSON.stringify({
                             type: 'joined',
-                            userId: userId
+                            userId: userId,
+                            roomId: data.roomId,
                         }));
                         // Handle room joining
-                        const roomKey = data.room || 'global';
+                        if (!data.roomId)
+                            break;
+                        const roomKey = data.roomId;
                         if (!rooms[roomKey]) {
                             rooms[roomKey] = [];
                             // Check if room data exists in Redis
@@ -120,6 +141,7 @@ wss.on('connection', function connection(ws) {
                         yield redis.hset(ROOMS_KEY, roomKey, JSON.stringify(rooms[roomKey]));
                         // Always send message history on join/refresh
                         const history = yield getMessageHistory(roomKey);
+                        // console.log(roomKey, 'history:', history);
                         ws.send(JSON.stringify({
                             type: 'message_history',
                             room: roomKey,
@@ -137,13 +159,15 @@ wss.on('connection', function connection(ws) {
                     case 'message': {
                         if (!userId)
                             break;
-                        const roomKey = data.room || 'global';
+                        const roomKey = data.roomId;
+                        console.log("message roomKey", roomKey);
                         // Store message in Redis with proper expiration
                         const messageData = yield storeMessage(roomKey, {
                             sender: userId,
                             content: data.content,
                             room: roomKey
                         });
+                        console.log("message data", messageData);
                         // Broadcast to connected clients
                         broadcastToClients(Object.assign({ type: 'message' }, messageData));
                         break;
@@ -151,7 +175,7 @@ wss.on('connection', function connection(ws) {
                     case 'get_history': {
                         if (!userId)
                             break;
-                        const roomKey = data.room || 'global';
+                        const roomKey = data.roomId;
                         const history = yield getMessageHistory(roomKey, data.limit || 100);
                         ws.send(JSON.stringify({
                             type: 'message_history',

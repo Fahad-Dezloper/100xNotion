@@ -104,7 +104,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
     };
 
     ws.onerror = (error) => {
-      console.error('WebSocket error:', error);
+      console.log('WebSocket error:', error);
     };
 
     return () => {
@@ -112,7 +112,35 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
     };
   }, [userId, serverUrl, roomId]);
 
-  // // Send a regular message
+  const joinRoom = (room: string) => {
+    if (room === currentRoom) return;
+    
+    console.log(`Joining room: ${room}`);
+    setCurrentRoom(room);
+    
+    if (socket && connected) {
+      // Leave current room if any
+      if (currentRoom) {
+        socket.send(JSON.stringify({
+          type: 'leave',
+          userId: userId,
+          roomId: currentRoom
+        }));
+      }
+      
+      // Join new room
+      socket.send(JSON.stringify({
+        type: 'join',
+        userId: userId,
+        roomId: room
+      }));
+      
+      // Clear the content when changing rooms
+      setEditorContent('');
+      setActiveUserEmail('');
+    }
+  };
+
   const sendMessage = (content: string) => {
     // console.log("Sending message:", content);
     if (socket && connected) {
@@ -120,6 +148,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
         type: 'message',
         sender: userId,
         content: content,
+        roomId: currentRoom
       })
     );
     setEditorContent(content);
@@ -127,7 +156,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
   };
 
   return (
-    <WebSocketContext.Provider value={{messages, sendMessage, userId, totalUsers, editorContent, connected, activeUserEmail}}>
+    <WebSocketContext.Provider value={{messages, sendMessage, joinRoom, userId, totalUsers, editorContent, connected, activeUserEmail}}>
       {children}
     </WebSocketContext.Provider>
   );

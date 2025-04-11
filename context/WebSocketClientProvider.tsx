@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useParams } from 'next/navigation';
 import { WebSocketProvider } from './WebContext';
 
 export default function WebSocketClientProvider({ 
@@ -8,23 +9,19 @@ export default function WebSocketClientProvider({
 }: { 
   children: React.ReactNode 
 }) {
+  const params = useParams();
+  const roomId = params?.roomId as string;
+  console.log("WebSocketClientProvider", roomId);
+
   const [userId, setUserId] = useState<string>('');
-  const [userRole, setUserRole] = useState<string>('');
-  const [roomId, setRoomId] = useState('');
-  
+  const [userRole, setUserRole] = useState<string>('user');
+
   useEffect(() => {
     const storedUserId = localStorage.getItem('userEmail');
     const storedUserRole = localStorage.getItem('userRole');
-    const roomId = localStorage.getItem("roomId");
-    if(roomId){
-      setRoomId(roomId || '');
-    } else {
-      console.error("No roomId found in localStorage");
-    }
 
+    if (storedUserRole) setUserRole(storedUserRole);
 
-    setUserRole(storedUserRole || 'user');
-    
     if (storedUserId) {
       setUserId(storedUserId);
     } else {
@@ -32,14 +29,11 @@ export default function WebSocketClientProvider({
       localStorage.setItem('chatUserId', generatedId);
       setUserId(generatedId);
     }
-
   }, []);
 
   if (!userId) {
     return <div>Initializing chat...</div>;
   }
-
-  // console.log("WebSocketClientProvider userId", userId);
 
   return (
     <WebSocketProvider 
