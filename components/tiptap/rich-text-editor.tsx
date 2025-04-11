@@ -75,8 +75,8 @@ const extensions = [
 ];
 
 export function RichTextEditorDemo({ className }: { className?: string }) {
-  const { sendMessage, editorContent } = useWebSocket();
-  console.log("form Rich Text Editor", editorContent);
+  const { sendMessage, editorContent, activeUserEmail } = useWebSocket();
+  // console.log("form Rich Text Editor", activeUserEmail);
   // const [editorContentt, setEditorContent] = useState('');
 
   const editor = useEditor({

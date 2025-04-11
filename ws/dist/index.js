@@ -54,7 +54,6 @@ function broadcastToClients(data, fromRedis = false) {
         pub.publish('ws:broadcast', JSON.stringify(data));
     }
 }
-// Store message in Redis with expiration
 function storeMessage(roomKey, messageData) {
     return __awaiter(this, void 0, void 0, function* () {
         const messageId = (0, uuid_1.v4)();

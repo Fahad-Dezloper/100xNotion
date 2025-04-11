@@ -11,6 +11,7 @@ interface WebSocketContextType {
   userId: string;
   totalUsers: number | null;
   editorContent: string | null;
+  activeUserEmail: string | null;
 }
 
 interface Message {
@@ -52,6 +53,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
   const [currentRoom, setCurrentRoom] = useState<string | null>(null);
   const [editorContent, setEditorContent] = useState<string | null>('');
   const [totalUsers, setTotalUsers] = useState<number | null>(null);
+  const [activeUserEmail, setActiveUserEmail] = useState<string | null>('');
 
   useEffect(() => {
     const ws = new WebSocket(serverUrl);
@@ -75,12 +77,17 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
 
         switch (data.type) {
           case "message":
-            console.log("Message received:", data.content);
+            // console.log("Message received:", data.sender);
             setEditorContent(data.content);
+            setActiveUserEmail(data.sender);
             break;
           case "total_users":
-            console.log("Total users connected:", data.total);
+            // console.log("Total users connected:", data.total);
             setTotalUsers(data.total);
+            break;
+          case "message_history":
+            // console.log("Message history received:", data.messages);
+            setEditorContent(data.messages[0].content);
             break;
           default:
             console.log("Unknown Websocket event:", data);
@@ -107,7 +114,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
 
   // // Send a regular message
   const sendMessage = (content: string) => {
-    console.log("Sending message:", content);
+    // console.log("Sending message:", content);
     if (socket && connected) {
       socket.send(JSON.stringify({
         type: 'message',
@@ -120,7 +127,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
   };
 
   return (
-    <WebSocketContext.Provider value={{messages, sendMessage, userId, totalUsers, editorContent, connected}}>
+    <WebSocketContext.Provider value={{messages, sendMessage, userId, totalUsers, editorContent, connected, activeUserEmail}}>
       {children}
     </WebSocketContext.Provider>
   );
