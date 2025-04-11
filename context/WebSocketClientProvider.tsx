@@ -40,7 +40,7 @@ export default function WebSocketClientProvider({
       userId={userId}
       userRole={userRole}
       roomId={roomId}
-      serverUrl={process.env.WEBSOCKET_SERVER_URL}
+      serverUrl={'https://a9c8-103-214-60-35.ngrok-free.app'}
     >
       {children}
     </WebSocketProvider>
