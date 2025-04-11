@@ -102,6 +102,47 @@ export function RichTextEditorDemo({ className }: { className?: string }) {
   });
 
   useEffect(() => {
+    if (!editor) return;
+  
+    let timeout: NodeJS.Timeout;
+  
+    const updateTooltip = () => {
+      const tooltip = document.getElementById("caret-tooltip");
+      if (!tooltip) return;
+  
+      const { state, view } = editor;
+      const { from, empty } = state.selection;
+  
+      if (!empty) {
+        tooltip.style.display = "none";
+        return;
+      }
+  
+      const coords = view.coordsAtPos(from);
+  
+      tooltip.style.left = `${coords.left}px`;
+      tooltip.style.top = `${coords.top - 35}px`; // Position above the caret
+      tooltip.style.display = "block";
+  
+      // Hide tooltip after a short delay
+      clearTimeout(timeout);
+      timeout = setTimeout(() => {
+        tooltip.style.display = "none";
+      }, 2000);
+    };
+  
+    editor.on("update", updateTooltip);
+    editor.on("selectionUpdate", updateTooltip);
+  
+    return () => {
+      editor.off("update", updateTooltip);
+      editor.off("selectionUpdate", updateTooltip);
+      clearTimeout(timeout);
+    };
+  }, [editor]);
+  
+
+  useEffect(() => {
     if (editor && editorContent) {
       // Skip update if the editor already has this content to prevent cursor jumps
       // Only update if the content is different from current editor content
@@ -127,6 +168,13 @@ export function RichTextEditorDemo({ className }: { className?: string }) {
         editor={editor}
         className=" min-h-[600px] w-full min-w-full cursor-text sm:p-6"
       />
+      <div
+        id="caret-tooltip"
+        className="absolute hidden bg-yellow-300 text-black px-2 py-1 text-sm rounded shadow-md z-50 pointer-events-none transition-opacity duration-200"
+      >
+        {activeUserEmail}
+      </div>
+
     </div>
   );
 }

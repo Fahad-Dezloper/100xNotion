@@ -418,3 +418,8 @@
   height: 0;
   pointer-events: none;
 }
+
+
+[contenteditable="true"]{
+  caret-color: red;
+}
