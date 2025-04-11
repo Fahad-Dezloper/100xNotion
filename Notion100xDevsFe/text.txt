@@ -1,0 +1,3 @@
+create layout in text-editor page. on click create a room link and share with public
+
+its simple dont complicate things
