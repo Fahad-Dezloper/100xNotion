@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react';
 
 interface WebSocketContextType {
@@ -5,9 +6,9 @@ interface WebSocketContextType {
   messages: Message[];
   sendMessage: (content: string) => void;
   joinRoom: (room: string) => void;
-  sendAdminBroadcast: (content: string) => void;
-  sendRoomBroadcast: (room: string, content: string) => void;
-  clearMessages: () => void;
+  // sendAdminBroadcast: (content: string) => void;
+  // sendRoomBroadcast: (room: string, content: string) => void;
+  // clearMessages: () => void;
   userId: string;
   totalUsers: number | null;
   editorContent: string | null;

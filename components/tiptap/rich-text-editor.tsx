@@ -19,9 +19,8 @@ import { TipTapFloatingMenu } from "@/components/tiptap/extensions/floating-menu
 import { FloatingToolbar } from "@/components/tiptap/extensions/floating-toolbar";
 import { EditorToolbar } from "./toolbars/editor-toolbar";
 import Placeholder from "@tiptap/extension-placeholder";
-import { content } from "@/lib/content";
 import { useWebSocket } from "@/context/WebContext";
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 
 const extensions = [
   StarterKit.configure({
