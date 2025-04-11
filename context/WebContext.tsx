@@ -110,6 +110,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
 
     return () => {
       ws.close();
+      // console.log("WebSocket closed");
     };
   }, [userId, serverUrl, roomId]);
 
