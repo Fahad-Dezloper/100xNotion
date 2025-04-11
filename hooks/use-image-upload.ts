@@ -13,20 +13,47 @@ export function useImageUpload({ onUpload }: UseImageUploadProps = {}) {
   const [error, setError] = useState<string | null>(null);
 
   // Dummy upload function that simulates a delay and returns the local preview URL
-  const dummyUpload = async (file: File, localUrl: string): Promise<string> => {
+  // const dummyUpload = async (file: File): Promise<string> => {
+  //   try {
+  //     setUploading(true);
+  //     // Simulate network delay
+  //     await new Promise(resolve => setTimeout(resolve, 1500));
+      
+  //     // Simulate random upload errors (20% chance)
+  //     if (Math.random() < 0.2) {
+  //       throw new Error("Upload failed - This is a demo error");
+  //     }
+      
+  //     setError(null);
+  //     // In a real implementation, this would be the URL from the server
+  //     return localUrl;
+  //   } catch (err) {
+  //     const errorMessage = err instanceof Error ? err.message : "Upload failed";
+  //     setError(errorMessage);
+  //     throw new Error(errorMessage);
+  //   } finally {
+  //     setUploading(false);
+  //   }
+  // };
+  const cloudinaryUpload = async (file: File): Promise<string> => {
     try {
       setUploading(true);
-      // Simulate network delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Simulate random upload errors (20% chance)
-      if (Math.random() < 0.2) {
-        throw new Error("Upload failed - This is a demo error");
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("upload_preset", "100xNotion");
+  
+      const response = await fetch("https://api.cloudinary.com/v1_1/dt6ubke1x/image/upload", {
+        method: "POST",
+        body: formData,
+      });
+  
+      if (!response.ok) {
+        throw new Error("Upload failed");
       }
-      
+  
+      const data = await response.json();
       setError(null);
-      // In a real implementation, this would be the URL from the server
-      return localUrl;
+      return data.secure_url;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Upload failed";
       setError(errorMessage);
@@ -35,6 +62,7 @@ export function useImageUpload({ onUpload }: UseImageUploadProps = {}) {
       setUploading(false);
     }
   };
+  
 
   const handleThumbnailClick = useCallback(() => {
     fileInputRef.current?.click();
@@ -50,7 +78,7 @@ export function useImageUpload({ onUpload }: UseImageUploadProps = {}) {
         previewRef.current = localUrl;
 
         try {
-          const uploadedUrl = await dummyUpload(file, localUrl);
+          const uploadedUrl = await cloudinaryUpload(file);
           onUpload?.(uploadedUrl);
         } catch (err) {
           URL.revokeObjectURL(localUrl);
