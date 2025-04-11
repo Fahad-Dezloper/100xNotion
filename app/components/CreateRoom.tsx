@@ -25,7 +25,7 @@ export default function RoomPage() {
       }
       // console.log("roomId", localStorage.getItem("roomId"));
       // alert(roomName);
-      router.push(`http://localhost:3000/editor/${roomName}`);
+      router.push(`/editor/${roomName}`);
     } catch(e){
       alert("Error has occured");
       console.log("erro while generating room", e);
