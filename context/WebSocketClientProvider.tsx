@@ -40,7 +40,7 @@ export default function WebSocketClientProvider({
       userId={userId}
       userRole={userRole}
       roomId={roomId}
-      serverUrl={'https://a9c8-103-214-60-35.ngrok-free.app'}
+      serverUrl={'wss://100xnotionbe-production.up.railway.app'}
     >
       {children}
     </WebSocketProvider>
